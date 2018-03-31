@@ -3,12 +3,12 @@ extern crate clap;
 use clap::{Arg, App, SubCommand};
 use std::fs;
 use std::path::Path;
-use std::fs::{OpenOptions};
+use std::fs::OpenOptions;
 
 fn create_dir(dir_name: &str) {
     match fs::create_dir(dir_name) {
         Err(e) => println!("Unable to create '{}': {:?}", dir_name, e.kind()),
-        Ok(_) => {},
+        Ok(_) => {}
     }
 
 }
@@ -18,7 +18,7 @@ fn touch(filename: &str) {
     let path = Path::new(filename);
 
     match OpenOptions::new().create(true).write(true).open(path) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => println!("Unable to create file '{}': {:?}", filename, e),
     }
 }
@@ -48,21 +48,25 @@ fn create_new_project(project_name: &str) {
 fn main() {
     println!("Hello, world!");
 
-    let html : String = markdown::to_html("__I am markdown__ [test](adsd)");
+    let html: String = markdown::to_html("__I am markdown__ [test](adsd)");
 
     println!("{}", html);
 
     let matches = App::new("scipio")
-                          .version("0.1.0")
-                          .author("lchsk <mjlechowski@gmail.com>")
-                          .about("simple static website generator")
-                          .subcommand(SubCommand::with_name("create")
-                                      .about("create new project")
-                                      .version("0.1.0")
-                                      .arg(Arg::with_name("project_name")
-                                           .takes_value(true)
-                                           .required(true)
-                                          .help("name of new project")))
+        .version("0.1.0")
+        .author("lchsk <mjlechowski@gmail.com>")
+        .about("simple static website generator")
+        .subcommand(
+            SubCommand::with_name("create")
+                .about("create new project")
+                .version("0.1.0")
+                .arg(
+                    Arg::with_name("project_name")
+                        .takes_value(true)
+                        .required(true)
+                        .help("name of new project"),
+                ),
+        )
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("create") {
