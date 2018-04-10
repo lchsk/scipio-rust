@@ -43,7 +43,6 @@ struct SourceFile {
     stem: String,
     date: DateTime<Utc>,
     body: String,
-    is_post: bool,
     entry_type: EntryType,
 }
 
@@ -132,7 +131,6 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         stem: stem.to_string(),
         date: DAT,
         body: body,
-        is_post: source_path.contains("/posts/"),
         entry_type: entry_type,
     }
 }
@@ -183,7 +181,7 @@ fn generate_file(
 
             links.push(tt);
 
-            if page_data.is_post {
+            if page_data.entry_type == EntryType::Post {
                 posts.push(page_data);
             }
         }
