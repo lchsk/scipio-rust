@@ -44,6 +44,15 @@ fn touch(filename: &str) {
     }
 }
 
+fn clean_build(project_name: &str) {
+    let cmd = Command::new("rm")
+        .arg("-r")
+        .arg(format!("./{}/build", project_name))
+        .output()
+        .expect("failed to execute process");
+    let hello = cmd.stdout;
+}
+
 #[derive(Debug)]
 struct SourceFile {
     source: String,
@@ -427,6 +436,17 @@ fn main() {
                         .help("name of the project"),
                 )
         )
+        .subcommand(
+            SubCommand::with_name("clean-build")
+                .about("clean build")
+                .version("0.1.0")
+                .arg(
+                    Arg::with_name("project_name")
+                        .takes_value(true)
+                        .required(true)
+                        .help("name of the project"),
+                )
+        )
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("create") {
@@ -435,5 +455,8 @@ fn main() {
     } else if let Some(matches) = matches.subcommand_matches("generate") {
         let project_name = matches.value_of("project_name").unwrap_or("scipio_default");
         generate(project_name);
+    } else if let Some(matches) = matches.subcommand_matches("clean-build") {
+        let project_name = matches.value_of("project_name").unwrap_or("scipio_default");
+        clean_build(project_name);
     }
 }
