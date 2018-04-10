@@ -197,16 +197,16 @@ fn generate_file(
 
         let cmd = Command::new("cp")
             .arg("-r")
-            .arg("./test/themes/default/static")
-            .arg("./test/build")
+            .arg(format!("./{}/themes/default/static", project_name))
+            .arg(format!("./{}/build", project_name))
             .output()
             .expect("failed to execute process");
         let hello = cmd.stdout;
 
         let cmd = Command::new("cp")
             .arg("-r")
-            .arg("./test/source/data")
-            .arg("./test/build")
+            .arg(format!("./{}/source/data", project_name))
+            .arg(format!("./{}/build", project_name))
             .output()
             .expect("failed to execute process");
         let hello = cmd.stdout;
@@ -265,11 +265,11 @@ fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
 }
 
 fn generate(project_name: &str) {
-    println!("Generating...");
+    println!("Generating '{}'...", project_name);
 
     let mut files: HashMap<String, SourceFile> = HashMap::new();
 
-    let paths = fs::read_dir("./test/source/pages").unwrap();
+    let paths = fs::read_dir(format!("./{}/source/pages", project_name)).unwrap();
 
     for path in paths {
         match path {
@@ -283,7 +283,7 @@ fn generate(project_name: &str) {
         }
     }
 
-    let paths = fs::read_dir("./test/source/posts").unwrap();
+    let paths = fs::read_dir(format!("./{}/source/posts", project_name)).unwrap();
 
     for path in paths {
         match path {
@@ -298,7 +298,7 @@ fn generate(project_name: &str) {
         }
     }
 
-    let paths = fs::read_dir("./test/source/").unwrap();
+    let paths = fs::read_dir(format!("./{}/source/", project_name)).unwrap();
 
     for path in paths {
         match path {
