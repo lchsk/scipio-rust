@@ -44,6 +44,7 @@ struct SourceFile {
     date: DateTime<Utc>,
     body: String,
     is_post: bool,
+    entry_type: EntryType,
 }
 
 fn open_source_file(source_info: &InternalFile) -> SourceFile {
@@ -115,6 +116,16 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         body = markdown::to_html(body_text.trim()).to_string();
     }
 
+    let entry_type: EntryType;
+
+    if stem == "index" {
+        entry_type = EntryType::Index;
+    } else if source_path.contains("/posts/") {
+        entry_type = EntryType::Post;
+    } else {
+        entry_type = EntryType::Page;
+    }
+
     SourceFile {
         source: source_contents,
         title: title,
@@ -122,6 +133,7 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         date: DAT,
         body: body,
         is_post: source_path.contains("/posts/"),
+        entry_type: entry_type,
     }
 }
 
@@ -264,8 +276,16 @@ fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
     }
 }
 
+#[derive(Debug)]
+#[derive(PartialEq)]
+enum EntryType {
+    Index,
+    Post,
+    Page,
+}
+
 fn generate(project_name: &str) {
-    println!("Generating '{}'...", project_name);
+    println!("Generating project '{}'...", project_name);
 
     let mut files: HashMap<String, SourceFile> = HashMap::new();
 
@@ -318,13 +338,28 @@ fn generate(project_name: &str) {
         }
     }
 
-    generate_file(project_name, "./test/themes/default/index.html", "./test/source/index.md", "index.html", &files, "index");
+    for (stem, file) in &files {
+        let entry_theme: &str;
+        let output_filename: &str;
+        let entry_subpath: &str;
 
-    generate_file(project_name, "./test/themes/default/page.html", "./test/source/pages/about.md", "", &files, "about");
-    generate_file(project_name, "./test/themes/default/page.html", "./test/source/pages/projects.md", "", &files, "projects");
+        if file.entry_type == EntryType::Page {
+            entry_theme = "page.html";
+            output_filename = "";
+            entry_subpath = "pages/";
+        } else if file.entry_type == EntryType::Post {
+            entry_theme = "post.html";
+            output_filename = "";
+            entry_subpath = "posts/";
+        } else {
+            entry_theme = "index.html";
+            output_filename = "index.html";
+            entry_subpath = "";
+        }
 
-    generate_file(project_name, "./test/themes/default/post.html", "./test/source/posts/post-example.md", "", &files, "post-example");
-    generate_file(project_name, "./test/themes/default/post.html", "./test/source/posts/second-post.md", "", &files, "second-post");
+        println!("\t=> Generating '{}'", stem);
+        generate_file(project_name, &format!("./{}/themes/default/{}", project_name, entry_theme), &format!("./{}/source/{}{}.md", project_name, entry_subpath, stem), output_filename, &files, &stem);
+    }
 }
 
 fn create_new_project(project_name: &str) {
