@@ -46,7 +46,6 @@ struct SourceFile {
     is_post: bool,
 }
 
-// fn open_source_file(source_path: &str) -> SourceFile {
 fn open_source_file(source_info: &InternalFile) -> SourceFile {
     let source_path = &source_info.path;
     let stem = &source_info.stem;
@@ -74,12 +73,8 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         let caps = re.captures(&source_contents);
 
         match caps {
-            // Some(dat) => println!("Date: {}", &dat["date"]),
             Some (dat) => {
-                // date = dat["date"].to_string()
                 let d = dat["date"].to_string().parse::<DateTime<Utc>>();
-
-                println!("HMM : {:?}", d);
 
                 match d {
                     Ok(valid_date) => {
@@ -95,10 +90,6 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
                 DAT = Utc::now();
             }
         }
-
-        println!("Date: {:?}", DAT);
-
-        // date = caps["date"].to_string();
     }
 
     let body: String;
@@ -121,7 +112,6 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
 
         let body_text = body_v.join("\n");
 
-        // body = body_text.trim().to_string();
         body = markdown::to_html(body_text.trim()).to_string();
     }
 
@@ -152,38 +142,6 @@ fn generate_file(
 
     let source = &files[file_stem];
 
-    // let source = open_source_file(source_path);
-
-    // let mut source_f = File::open(source_path).expect("file not found");
-    // let mut source_contents = String::new();
-
-    // source_f.read_to_string(&mut source_contents)
-        // .expect("something went wrong reading the file");
-
-    // let re = Regex::new(r"title: (?P<title>.+)").unwrap();
-    // let caps = re.captures(&source_contents).unwrap();
-
-    // let result: Vec<_> = source_contents.lines().collect();
-    // let mut body_v: Vec<&str> = Vec::new();
-
-    // let mut i = 0;
-
-    // for line in result {
-        // if line.starts_with("---") {
-            // i += 1;
-            // continue;
-        // }
-
-        // if i >= 2 {
-            // body_v.push(line);
-        // }
-    // }
-
-    // let body = body_v.join("\n");
-    // let body2 = body.trim();
-
-    // let mut output = theme_contents.replace("{{title}}", &caps["title"]);
-
     let mut output = theme_contents.replace("{{title}}", &source.title);
     let mut output = output.replace("{{body}}", &source.body);
 
@@ -194,20 +152,8 @@ fn generate_file(
 
         let st = format!("{{{{@{page}}}}}", page=page);
 
-        println!("{:?}", st);
-
         output = output.replace(&st, tt);
     }
-
-    // let t = &files["about"].title;
-
-    // let tt = &format!("<a href=about.html>{}</a>", t);
-
-    // let output = &output.replace("{{@about}}", tt);
-
-    // let html = markdown::to_html(&source.body);
-
-    // let output = &output.replace("{{body}}", output);
 
     let of2 = &format!("{}.html", slugify!(&source.title));
     let mut of: &str = "index.html";
@@ -239,8 +185,6 @@ fn generate_file(
         {
             let caps = re.captures(&output).unwrap();
 
-            println!("{:?}", caps);
-            println!("Cap: {}", &caps["post"]);
             link_tmpl = caps["post"].to_string();
         }
 
@@ -299,7 +243,6 @@ fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
         Some(stem) => {
             match stem.to_str() {
                 Some(stem) => {
-                    // return stem.to_string();
                     return InternalFile {
                         stem: stem.to_string(),
                         path: path.to_str().unwrap().to_string(),
@@ -314,16 +257,6 @@ fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
         None => {
         }
     }
-
-    // let path_buf = path.path();
-    // let path2 = path_buf.as_path();
-
-    // let file_stem = path2.file_stem();
-    // let file_stem = file_stem.unwrap();
-    // let file_stem = file_stem.to_str();
-    // let file_stem = file_stem.unwrap();
-
-    // return file_stem.to_string();
 
     return InternalFile {
         stem: "".to_string(),
@@ -349,22 +282,6 @@ fn generate(project_name: &str) {
             Err(_) => println!("Invalid file"),
         }
     }
-
-        // let path_buf1 = path.unwrap();
-        // let path_buf = path_buf1.path();
-        // let path2 = path_buf.as_path();
-
-        // let file_stem = path2.file_stem();
-        // let file_stem = file_stem.unwrap();
-        // let file_stem = file_stem.to_str();
-        // let file_stem = file_stem.unwrap();
-
-        // let file_stem = get_file_stem(&path.unwrap());
-
-        // let source_data = open_source_file(path2.to_str().unwrap());
-        // let source_data = open_source_file(path2.to_str().unwrap());
-
-        // files.insert(file_stem.to_string(), source_data);
 
     let paths = fs::read_dir("./test/source/posts").unwrap();
 
