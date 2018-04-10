@@ -22,7 +22,11 @@ use chrono::prelude::*;
 
 fn create_dir(dir_name: &str) {
     match fs::create_dir(dir_name) {
-        Err(e) => println!("Unable to create '{}': {:?}", dir_name, e.kind()),
+        Err(e) => {
+            if e.kind() != std::io::ErrorKind::AlreadyExists {
+                println!("Unable to create dir '{}': {:?}", dir_name, e.kind());
+            }
+        }
         Ok(_) => {}
     }
 }
@@ -32,7 +36,11 @@ fn touch(filename: &str) {
 
     match OpenOptions::new().create(true).write(true).open(path) {
         Ok(_) => {}
-        Err(e) => println!("Unable to create file '{}': {:?}", filename, e),
+        Err(e) => {
+            if e.kind() != std::io::ErrorKind::AlreadyExists {
+                println!("Unable to create file '{}': {:?}", filename, e.kind());
+            }
+        }
     }
 }
 
@@ -284,6 +292,9 @@ enum EntryType {
 
 fn generate(project_name: &str) {
     println!("Generating project '{}'...", project_name);
+
+    let build_dir = format!("{}/{}", project_name, "build");
+    create_dir(&build_dir);
 
     let mut files: HashMap<String, SourceFile> = HashMap::new();
 
