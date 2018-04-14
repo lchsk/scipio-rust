@@ -77,9 +77,17 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
 
     let re = Regex::new(r"title: (?P<title>.+)").unwrap();
     {
-        let caps = re.captures(&source_contents).unwrap();
+        let caps = re.captures(&source_contents);
 
-        title = caps["title"].to_string();
+        match (caps) {
+            Some(caps) => {
+                title = caps["title"].to_string();
+            }
+            None => {
+                title = "".to_string();
+                println!("title tag not found in source file {}, skipping", source_path);
+            }
+        }
     }
 
     let mut date: String = String::new();
