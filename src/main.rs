@@ -168,12 +168,19 @@ fn generate_file(
     files: &HashMap<String, SourceFile>,
     file_stem: &str,
 ) {
-    let mut theme_f = File::open(theme_path).expect("file not found");
-
+    let mut theme_f = File::open(theme_path);
     let mut theme_contents = String::new();
 
-    theme_f.read_to_string(&mut theme_contents)
-        .expect("something went wrong reading the file");
+    match theme_f {
+        Ok(mut theme_f) => {
+            theme_f.read_to_string(&mut theme_contents)
+                .expect("something went wrong reading the file");
+        }
+
+        Err(_) => {
+            println!("Theme file {} not found, skipping", theme_path);
+        }
+    }
 
     let source = &files[file_stem];
 
@@ -216,11 +223,18 @@ fn generate_file(
         let re = Regex::new(r"(?s)\{\{posts-begin\}\}(?P<post>.*)\{\{posts-end\}\}").unwrap();
 
         let mut link_tmpl: String;
-
         {
-            let caps = re.captures(&output).unwrap();
+            let caps = re.captures(&output);
 
-            link_tmpl = caps["post"].to_string();
+            match caps {
+                Some(caps) => {
+                    link_tmpl = caps["post"].to_string();
+                }
+                None => {
+                    link_tmpl = "".to_string();
+                    println!("Tags posts-begin posts-end not found in {}, skipping", source_path);
+                }
+            }
         }
 
         let mut all_links: String = String::new();
