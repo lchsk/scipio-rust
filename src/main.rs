@@ -12,43 +12,11 @@ use std::io::prelude::*;
 
 use clap::{Arg, App, SubCommand};
 use std::fs;
-use std::path::Path;
-use std::fs::OpenOptions;
 use std::fs::File;
 use std::collections::HashMap;
 use chrono::prelude::*;
 
-fn create_dir(dir_name: &str) {
-    match fs::create_dir(dir_name) {
-        Err(e) => {
-            if e.kind() != std::io::ErrorKind::AlreadyExists {
-                println!("Unable to create dir '{}': {:?}", dir_name, e.kind());
-            }
-        }
-        Ok(_) => {}
-    }
-}
-
-fn touch(filename: &str) {
-    let path = Path::new(filename);
-
-    match OpenOptions::new().create(true).write(true).open(path) {
-        Ok(_) => {}
-        Err(e) => {
-            if e.kind() != std::io::ErrorKind::AlreadyExists {
-                println!("Unable to create file '{}': {:?}", filename, e.kind());
-            }
-        }
-    }
-}
-
-fn clean_build(project_name: &str) {
-    Command::new("rm")
-        .arg("-r")
-        .arg(format!("./{}/build", project_name))
-        .output()
-        .expect("failed to execute process");
-}
+mod filesystem;
 
 #[derive(Debug)]
 struct SourceFile {
@@ -321,7 +289,7 @@ fn generate(project_name: &str) {
     println!("Generating project '{}'...", project_name);
 
     let build_dir = format!("{}/{}", project_name, "build");
-    create_dir(&build_dir);
+    filesystem::create_dir(&build_dir);
 
     let mut files: HashMap<String, SourceFile> = HashMap::new();
 
@@ -401,30 +369,30 @@ fn generate(project_name: &str) {
 fn create_new_project(project_name: &str) {
     println!("Creating new project '{}'", project_name);
 
-    create_dir(project_name);
+    filesystem::create_dir(project_name);
 
     let source_dir = format!("{}/{}", project_name, "source");
 
-    create_dir(&source_dir);
+    filesystem::create_dir(&source_dir);
 
     let build_dir = format!("{}/{}", project_name, "build");
 
-    create_dir(&build_dir);
+    filesystem::create_dir(&build_dir);
 
     let posts_dir = format!("{}/{}", project_name, "source/posts");
     let pages_dir = format!("{}/{}", project_name, "source/pages");
 
-    create_dir(&posts_dir);
-    create_dir(&pages_dir);
+    filesystem::create_dir(&posts_dir);
+    filesystem::create_dir(&pages_dir);
 
     let themes_dir = format!("{}/{}", project_name, "themes");
-    create_dir(&themes_dir);
+    filesystem::create_dir(&themes_dir);
 
     let config_file_dir = format!("{}/{}", project_name, "scipio.config");
     let index_dir = format!("{}/{}", project_name, "source/index.md");
 
-    touch(&config_file_dir);
-    touch(&index_dir);
+    filesystem::touch(&config_file_dir);
+    filesystem::touch(&index_dir);
 }
 
 fn main() {
@@ -475,6 +443,6 @@ fn main() {
         generate(project_name);
     } else if let Some(matches) = matches.subcommand_matches("clean-build") {
         let project_name = matches.value_of("project_name").unwrap_or("scipio_default");
-        clean_build(project_name);
+        filesystem::clean_build(project_name);
     }
 }
