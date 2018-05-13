@@ -14,9 +14,7 @@ use clap::{Arg, App, SubCommand};
 use std::fs;
 use std::path::Path;
 use std::fs::OpenOptions;
-use std::env;
 use std::fs::File;
-use std::io::prelude::*;
 use std::collections::HashMap;
 use chrono::prelude::*;
 
@@ -45,12 +43,11 @@ fn touch(filename: &str) {
 }
 
 fn clean_build(project_name: &str) {
-    let cmd = Command::new("rm")
+    Command::new("rm")
         .arg("-r")
         .arg(format!("./{}/build", project_name))
         .output()
         .expect("failed to execute process");
-    let hello = cmd.stdout;
 }
 
 #[derive(Debug)]
@@ -79,7 +76,7 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
     {
         let caps = re.captures(&source_contents);
 
-        match (caps) {
+        match caps {
             Some(caps) => {
                 title = caps["title"].to_string();
             }
@@ -90,8 +87,7 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         }
     }
 
-    let mut date: String = String::new();
-    let DAT: DateTime<Utc>;
+    let date: DateTime<Utc>;
 
     let re = Regex::new(r"created: (?P<date>.+)").unwrap();
     {
@@ -103,16 +99,16 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
 
                 match d {
                     Ok(valid_date) => {
-                        DAT = valid_date;
+                        date = valid_date;
                     }
                     Err(_) => {
-                        DAT = Utc::now();
+                        date = Utc::now();
                     }
                 }
 
             }
             None => {
-                DAT = Utc::now();
+                date = Utc::now();
             }
         }
     }
@@ -154,7 +150,7 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         source: source_contents,
         title: title,
         stem: stem.to_string(),
-        date: DAT,
+        date: date,
         body: body,
         entry_type: entry_type,
     }
@@ -168,7 +164,7 @@ fn generate_file(
     files: &HashMap<String, SourceFile>,
     file_stem: &str,
 ) {
-    let mut theme_f = File::open(theme_path);
+    let theme_f = File::open(theme_path);
     let mut theme_contents = String::new();
 
     match theme_f {
@@ -184,10 +180,10 @@ fn generate_file(
 
     let source = &files[file_stem];
 
-    let mut output = theme_contents.replace("{{title}}", &source.title);
+    let output = theme_contents.replace("{{title}}", &source.title);
     let mut output = output.replace("{{body}}", &source.body);
 
-    for (page, page_data) in files {
+    for (page, _) in files {
         let t = &files[page].title;
 
         let tt = &format!("<a href=\"{}.html\">{}</a>", page, t);
@@ -222,7 +218,7 @@ fn generate_file(
 
         let re = Regex::new(r"(?s)\{\{posts-begin\}\}(?P<post>.*)\{\{posts-end\}\}").unwrap();
 
-        let mut link_tmpl: String;
+        let link_tmpl: String;
         {
             let caps = re.captures(&output);
 
@@ -244,21 +240,21 @@ fn generate_file(
             all_links.push_str(&link_tmpl.replace("{{post_link}}", &tt));
         }
 
-        let cmd = Command::new("cp")
+        Command::new("cp")
             .arg("-r")
             .arg(format!("./{}/themes/default/static", project_name))
             .arg(format!("./{}/build", project_name))
             .output()
             .expect("failed to execute process");
-        let hello = cmd.stdout;
+        // let hello = cmd.stdout;
 
-        let cmd = Command::new("cp")
+        Command::new("cp")
             .arg("-r")
             .arg(format!("./{}/source/data", project_name))
             .arg(format!("./{}/build", project_name))
             .output()
             .expect("failed to execute process");
-        let hello = cmd.stdout;
+        // let hello = cmd.stdout;
 
         output = output.replace("{{posts-begin}}", &all_links);
         output = output.replace("{{posts-end}}", "");
