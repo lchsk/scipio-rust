@@ -209,7 +209,8 @@ fn generate_file(
 
         for link in &posts {
             let link_html = format!("<a title=\"{}\" href=\"{}.html\">{}</a>", link.title, link.stem, link.title);
-            let link_text = &link_tmpl.replace("{{post_link}}", &link_html).replace("{{date}}", &link.date.format("%Y-%m-%d").to_string());
+            let post_date = link.date.format("%Y-%m-%d").to_string();
+            let link_text = &link_tmpl.replace("{{post_link}}", &link_html).replace("{{post_date}}", &post_date);
             all_links.push_str(link_text);
         }
 
