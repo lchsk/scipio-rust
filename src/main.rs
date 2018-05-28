@@ -1,9 +1,10 @@
-extern crate markdown;
 extern crate clap;
 extern crate regex;
 extern crate chrono;
+extern crate pulldown_cmark;
 #[macro_use] extern crate slugify;
 
+use pulldown_cmark::{html, Parser};
 use slugify::slugify;
 use std::process::Command;
 
@@ -81,7 +82,7 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
         }
     }
 
-    let body: String;
+    let mut body: String;
     {
         let result: Vec<_> = source_contents.lines().collect();
         let mut body_v: Vec<&str> = Vec::new();
@@ -101,7 +102,9 @@ fn open_source_file(source_info: &InternalFile) -> SourceFile {
 
         let body_text = body_v.join("\n");
 
-        body = markdown::to_html(body_text.trim()).to_string();
+        let parser = Parser::new(body_text.trim());
+        body = String::new();
+        html::push_html(&mut body, parser);
     }
 
     let entry_type: EntryType;
