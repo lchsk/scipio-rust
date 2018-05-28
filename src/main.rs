@@ -152,6 +152,7 @@ fn generate_file(
     let source = &files[file_stem];
 
     let output = theme_contents.replace("{{title}}", &source.title);
+    let output = output.replace("{{date}}", &source.date.format("%Y-%m-%d").to_string());
     let mut output = output.replace("{{body}}", &source.body);
 
     for (page, _) in files {
@@ -207,8 +208,9 @@ fn generate_file(
         let mut all_links: String = String::new();
 
         for link in &posts {
-            let tt = format!("<a href=\"{}.html\">{}</a>", link.stem, link.title);
-            all_links.push_str(&link_tmpl.replace("{{post_link}}", &tt));
+            let link_html = format!("<a title=\"{}\" href=\"{}.html\">{}</a>", link.title, link.stem, link.title);
+            let link_text = &link_tmpl.replace("{{post_link}}", &link_html).replace("{{date}}", &link.date.format("%Y-%m-%d").to_string());
+            all_links.push_str(link_text);
         }
 
         Command::new("cp")
@@ -217,7 +219,6 @@ fn generate_file(
             .arg(format!("./{}/build", project_name))
             .output()
             .expect("failed to execute process");
-        // let hello = cmd.stdout;
 
         Command::new("cp")
             .arg("-r")
@@ -225,7 +226,6 @@ fn generate_file(
             .arg(format!("./{}/build", project_name))
             .output()
             .expect("failed to execute process");
-        // let hello = cmd.stdout;
 
         output = output.replace("{{posts-begin}}", &all_links);
         output = output.replace("{{posts-end}}", "");
