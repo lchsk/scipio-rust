@@ -31,7 +31,7 @@ pub fn touch(filename: &str) {
 pub fn clean_build(project_name: &str) {
     Command::new("rm")
         .arg("-r")
-        .arg(format!("./{}/build", project_name))
+        .arg(format!("{}/build", project_name))
         .output()
         .expect("failed to execute process");
 }

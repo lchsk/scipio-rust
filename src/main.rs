@@ -215,15 +215,15 @@ fn generate_file(
 
         Command::new("cp")
             .arg("-r")
-            .arg(format!("./{}/themes/default/static", project_name))
-            .arg(format!("./{}/build", project_name))
+            .arg(format!("{}/themes/default/static", project_name))
+            .arg(format!("{}/build", project_name))
             .output()
             .expect("failed to execute process");
 
         Command::new("cp")
             .arg("-r")
-            .arg(format!("./{}/source/data", project_name))
-            .arg(format!("./{}/build", project_name))
+            .arg(format!("{}/source/data", project_name))
+            .arg(format!("{}/build", project_name))
             .output()
             .expect("failed to execute process");
 
@@ -296,7 +296,7 @@ fn generate(project_name: &str) {
 
     let mut files: HashMap<String, SourceFile> = HashMap::new();
 
-    let paths = fs::read_dir(format!("./{}/source/pages", project_name)).unwrap();
+    let paths = fs::read_dir(format!("{}/source/pages", project_name)).unwrap();
 
     for path in paths {
         match path {
@@ -310,7 +310,7 @@ fn generate(project_name: &str) {
         }
     }
 
-    let paths = fs::read_dir(format!("./{}/source/posts", project_name)).unwrap();
+    let paths = fs::read_dir(format!("{}/source/posts", project_name)).unwrap();
 
     for path in paths {
         match path {
@@ -325,7 +325,7 @@ fn generate(project_name: &str) {
         }
     }
 
-    let paths = fs::read_dir(format!("./{}/source/", project_name)).unwrap();
+    let paths = fs::read_dir(format!("{}/source/", project_name)).unwrap();
 
     for path in paths {
         match path {
@@ -365,7 +365,7 @@ fn generate(project_name: &str) {
         }
 
         println!("\t=> Generating '{}'", stem);
-        generate_file(project_name, &format!("./{}/themes/default/{}", project_name, entry_theme), &format!("./{}/source/{}{}.md", project_name, entry_subpath, stem), output_filename, &files, &stem);
+        generate_file(project_name, &format!("{}/themes/default/{}", project_name, entry_theme), &format!("{}/source/{}{}.md", project_name, entry_subpath, stem), output_filename, &files, &stem);
     }
 }
 
