@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use chrono::prelude::*;
 
 mod filesystem;
+mod files;
 
 #[derive(Debug)]
 struct SourceFile {
@@ -29,7 +30,7 @@ struct SourceFile {
     entry_type: EntryType,
 }
 
-fn open_source_file(source_info: &InternalFile) -> SourceFile {
+fn open_source_file(source_info: &files::InternalFile) -> SourceFile {
     let source_path = &source_info.path;
     let stem = &source_info.stem;
     let mut source_f = File::open(source_path).expect("file not found");
@@ -238,48 +239,6 @@ fn generate_file(
     file.write_all(output.as_bytes()).expect("Unable to write into the file");
 }
 
-#[derive(Debug)]
-struct InternalFile {
-    stem: String,
-    path: String,
-}
-
-fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
-    let path_buf = path.path();
-
-    if !path_buf.is_file() {
-        return InternalFile {
-            stem: "".to_string(),
-            path: "".to_string(),
-        }
-    }
-
-    let path = path_buf.as_path();
-
-    match path.file_stem() {
-        Some(stem) => {
-            match stem.to_str() {
-                Some(stem) => {
-                    return InternalFile {
-                        stem: stem.to_string(),
-                        path: path.to_str().unwrap().to_string(),
-                    }
-                }
-
-                None => {
-                    println!("Invalid file stem found");
-                }
-            }
-        }
-        None => {
-        }
-    }
-
-    return InternalFile {
-        stem: "".to_string(),
-        path: "".to_string(),
-    }
-}
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -302,7 +261,7 @@ fn generate(project_name: &str) {
     for path in paths {
         match path {
             Ok(path) => {
-                let file_info = get_file_stem(&path);
+                let file_info = files::get_file_stem(&path);
                 let source_data = open_source_file(&file_info);
 
                 files.insert(file_info.stem, source_data);
@@ -316,7 +275,7 @@ fn generate(project_name: &str) {
     for path in paths {
         match path {
             Ok(path) => {
-                let file_info = get_file_stem(&path);
+                let file_info = files::get_file_stem(&path);
 
                 let source_data = open_source_file(&file_info);
 
@@ -331,7 +290,7 @@ fn generate(project_name: &str) {
     for path in paths {
         match path {
             Ok(path) => {
-                let file_info = get_file_stem(&path);
+                let file_info = files::get_file_stem(&path);
 
                 if file_info.stem == "" {
                     continue;
