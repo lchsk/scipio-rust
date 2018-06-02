@@ -1,18 +1,15 @@
 extern crate chrono;
 extern crate clap;
-extern crate pulldown_cmark;
 extern crate regex;
 #[macro_use]
 extern crate slugify;
-
-use pulldown_cmark::{html, Parser};
+extern crate pulldown_cmark;
 use slugify::slugify;
 use std::process::Command;
 
 use regex::Regex;
 use std::io::prelude::*;
 
-use chrono::prelude::*;
 use clap::{App, Arg, SubCommand};
 use std::collections::HashMap;
 use std::fs;
@@ -21,123 +18,12 @@ use std::fs::File;
 mod files;
 mod filesystem;
 
-#[derive(Debug)]
-struct SourceFile {
-    source: String,
-    title: String,
-    stem: String,
-    date: DateTime<Utc>,
-    body: String,
-    entry_type: EntryType,
-}
-
-fn open_source_file(source_info: &files::InternalFile) -> SourceFile {
-    let source_path = &source_info.path;
-    let stem = &source_info.stem;
-    let mut source_f = File::open(source_path).expect("file not found");
-
-    let mut source_contents = String::new();
-
-    source_f
-        .read_to_string(&mut source_contents)
-        .expect("something went wrong reading the file");
-
-    let title: String;
-
-    let re = Regex::new(r"title: (?P<title>.+)").unwrap();
-    {
-        let caps = re.captures(&source_contents);
-
-        match caps {
-            Some(caps) => {
-                title = caps["title"].to_string();
-            }
-            None => {
-                title = "".to_string();
-                println!(
-                    "title tag not found in source file {}, skipping",
-                    source_path
-                );
-            }
-        }
-    }
-
-    let date: DateTime<Utc>;
-
-    let re = Regex::new(r"created: (?P<date>.+)").unwrap();
-    {
-        let caps = re.captures(&source_contents);
-
-        match caps {
-            Some(dat) => {
-                let d = dat["date"].to_string().parse::<DateTime<Utc>>();
-
-                match d {
-                    Ok(valid_date) => {
-                        date = valid_date;
-                    }
-                    Err(_) => {
-                        date = Utc::now();
-                    }
-                }
-            }
-            None => {
-                date = Utc::now();
-            }
-        }
-    }
-
-    let mut body: String;
-    {
-        let result: Vec<_> = source_contents.lines().collect();
-        let mut body_v: Vec<&str> = Vec::new();
-
-        let mut i = 0;
-
-        for line in result {
-            if line.starts_with("---") {
-                i += 1;
-                continue;
-            }
-
-            if i >= 2 {
-                body_v.push(line);
-            }
-        }
-
-        let body_text = body_v.join("\n");
-
-        let parser = Parser::new(body_text.trim());
-        body = String::new();
-        html::push_html(&mut body, parser);
-    }
-
-    let entry_type: EntryType;
-
-    if stem == "index" {
-        entry_type = EntryType::Index;
-    } else if source_path.contains("/posts/") {
-        entry_type = EntryType::Post;
-    } else {
-        entry_type = EntryType::Page;
-    }
-
-    SourceFile {
-        source: source_contents,
-        title: title,
-        stem: stem.to_string(),
-        date: date,
-        body: body,
-        entry_type: entry_type,
-    }
-}
-
 fn generate_file(
     project_name: &str,
     theme_path: &str,
     source_path: &str,
     output_filename: &str,
-    files: &HashMap<String, SourceFile>,
+    files: &HashMap<String, files::SourceFile>,
     file_stem: &str,
 ) {
     let theme_f = File::open(theme_path);
@@ -178,7 +64,7 @@ fn generate_file(
         of = of2;
     } else {
         let mut links: Vec<String> = Vec::new();
-        let mut posts: Vec<&SourceFile> = Vec::new();
+        let mut posts: Vec<&files::SourceFile> = Vec::new();
 
         for (page, page_data) in files {
             let t = &files[page].title;
@@ -187,7 +73,7 @@ fn generate_file(
 
             links.push(tt);
 
-            if page_data.entry_type == EntryType::Post {
+            if page_data.entry_type == files::EntryType::Post {
                 posts.push(page_data);
             }
         }
@@ -254,20 +140,13 @@ fn generate_file(
         .expect("Unable to write into the file");
 }
 
-#[derive(Debug, PartialEq)]
-enum EntryType {
-    Index,
-    Post,
-    Page,
-}
-
 fn generate(project_name: &str) {
     println!("Generating project '{}'...", project_name);
 
     let build_dir = format!("{}/{}", project_name, "build");
     filesystem::create_dir(&build_dir);
 
-    let mut files: HashMap<String, SourceFile> = HashMap::new();
+    let mut files: HashMap<String, files::SourceFile> = HashMap::new();
 
     let paths = fs::read_dir(format!("{}/source/pages", project_name)).unwrap();
 
@@ -275,7 +154,7 @@ fn generate(project_name: &str) {
         match path {
             Ok(path) => {
                 let file_info = files::get_file_stem(&path);
-                let source_data = open_source_file(&file_info);
+                let source_data = files::open_source_file(&file_info);
 
                 files.insert(file_info.stem, source_data);
             }
@@ -290,7 +169,7 @@ fn generate(project_name: &str) {
             Ok(path) => {
                 let file_info = files::get_file_stem(&path);
 
-                let source_data = open_source_file(&file_info);
+                let source_data = files::open_source_file(&file_info);
 
                 files.insert(file_info.stem, source_data);
             }
@@ -309,7 +188,7 @@ fn generate(project_name: &str) {
                     continue;
                 }
 
-                let source_data = open_source_file(&file_info);
+                let source_data = files::open_source_file(&file_info);
 
                 files.insert(file_info.stem, source_data);
             }
@@ -322,11 +201,11 @@ fn generate(project_name: &str) {
         let output_filename: &str;
         let entry_subpath: &str;
 
-        if file.entry_type == EntryType::Page {
+        if file.entry_type == files::EntryType::Page {
             entry_theme = "page.html";
             output_filename = "";
             entry_subpath = "pages/";
-        } else if file.entry_type == EntryType::Post {
+        } else if file.entry_type == files::EntryType::Post {
             entry_theme = "post.html";
             output_filename = "";
             entry_subpath = "posts/";
