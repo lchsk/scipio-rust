@@ -13,32 +13,29 @@ pub fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
         return InternalFile {
             stem: "".to_string(),
             path: "".to_string(),
-        }
+        };
     }
 
     let path = path_buf.as_path();
 
     match path.file_stem() {
-        Some(stem) => {
-            match stem.to_str() {
-                Some(stem) => {
-                    return InternalFile {
-                        stem: stem.to_string(),
-                        path: path.to_str().unwrap().to_string(),
-                    }
-                }
-
-                None => {
-                    println!("Invalid file stem found");
+        Some(stem) => match stem.to_str() {
+            Some(stem) => {
+                return InternalFile {
+                    stem: stem.to_string(),
+                    path: path.to_str().unwrap().to_string(),
                 }
             }
-        }
-        None => {
-        }
+
+            None => {
+                println!("Invalid file stem found");
+            }
+        },
+        None => {}
     }
 
     return InternalFile {
         stem: "".to_string(),
         path: "".to_string(),
-    }
+    };
 }

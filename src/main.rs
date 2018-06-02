@@ -1,8 +1,9 @@
-extern crate clap;
-extern crate regex;
 extern crate chrono;
+extern crate clap;
 extern crate pulldown_cmark;
-#[macro_use] extern crate slugify;
+extern crate regex;
+#[macro_use]
+extern crate slugify;
 
 use pulldown_cmark::{html, Parser};
 use slugify::slugify;
@@ -11,14 +12,14 @@ use std::process::Command;
 use regex::Regex;
 use std::io::prelude::*;
 
-use clap::{Arg, App, SubCommand};
+use chrono::prelude::*;
+use clap::{App, Arg, SubCommand};
+use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
-use std::collections::HashMap;
-use chrono::prelude::*;
 
-mod filesystem;
 mod files;
+mod filesystem;
 
 #[derive(Debug)]
 struct SourceFile {
@@ -37,7 +38,8 @@ fn open_source_file(source_info: &files::InternalFile) -> SourceFile {
 
     let mut source_contents = String::new();
 
-    source_f.read_to_string(&mut source_contents)
+    source_f
+        .read_to_string(&mut source_contents)
         .expect("something went wrong reading the file");
 
     let title: String;
@@ -52,7 +54,10 @@ fn open_source_file(source_info: &files::InternalFile) -> SourceFile {
             }
             None => {
                 title = "".to_string();
-                println!("title tag not found in source file {}, skipping", source_path);
+                println!(
+                    "title tag not found in source file {}, skipping",
+                    source_path
+                );
             }
         }
     }
@@ -64,7 +69,7 @@ fn open_source_file(source_info: &files::InternalFile) -> SourceFile {
         let caps = re.captures(&source_contents);
 
         match caps {
-            Some (dat) => {
+            Some(dat) => {
                 let d = dat["date"].to_string().parse::<DateTime<Utc>>();
 
                 match d {
@@ -75,7 +80,6 @@ fn open_source_file(source_info: &files::InternalFile) -> SourceFile {
                         date = Utc::now();
                     }
                 }
-
             }
             None => {
                 date = Utc::now();
@@ -141,7 +145,8 @@ fn generate_file(
 
     match theme_f {
         Ok(mut theme_f) => {
-            theme_f.read_to_string(&mut theme_contents)
+            theme_f
+                .read_to_string(&mut theme_contents)
                 .expect("something went wrong reading the file");
         }
 
@@ -161,7 +166,7 @@ fn generate_file(
 
         let tt = &format!("<a href=\"{}.html\">{}</a>", page, t);
 
-        let st = format!("{{{{@{page}}}}}", page=page);
+        let st = format!("{{{{@{page}}}}}", page = page);
 
         output = output.replace(&st, tt);
     }
@@ -201,7 +206,10 @@ fn generate_file(
                 }
                 None => {
                     link_tmpl = "".to_string();
-                    println!("Tags posts-begin posts-end not found in {}, skipping", source_path);
+                    println!(
+                        "Tags posts-begin posts-end not found in {}, skipping",
+                        source_path
+                    );
                 }
             }
         }
@@ -209,9 +217,14 @@ fn generate_file(
         let mut all_links: String = String::new();
 
         for link in &posts {
-            let link_html = format!("<a title=\"{}\" href=\"{}.html\">{}</a>", link.title, link.stem, link.title);
+            let link_html = format!(
+                "<a title=\"{}\" href=\"{}.html\">{}</a>",
+                link.title, link.stem, link.title
+            );
             let post_date = link.date.format("%Y-%m-%d").to_string();
-            let link_text = &link_tmpl.replace("{{post_link}}", &link_html).replace("{{post_date}}", &post_date);
+            let link_text = &link_tmpl
+                .replace("{{post_link}}", &link_html)
+                .replace("{{post_date}}", &post_date);
             all_links.push_str(link_text);
         }
 
@@ -234,14 +247,14 @@ fn generate_file(
         output = output.replace(&link_tmpl, "");
     }
 
-    let mut file = File::create(format!("{}/{}/{}", project_name, "build", of)).expect("Unable to create file");
+    let mut file = File::create(format!("{}/{}/{}", project_name, "build", of))
+        .expect("Unable to create file");
 
-    file.write_all(output.as_bytes()).expect("Unable to write into the file");
+    file.write_all(output.as_bytes())
+        .expect("Unable to write into the file");
 }
 
-
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum EntryType {
     Index,
     Post,
@@ -298,7 +311,6 @@ fn generate(project_name: &str) {
 
                 let source_data = open_source_file(&file_info);
 
-
                 files.insert(file_info.stem, source_data);
             }
             Err(_) => println!("Invalid file"),
@@ -325,7 +337,14 @@ fn generate(project_name: &str) {
         }
 
         println!("\t=> Generating '{}'", stem);
-        generate_file(project_name, &format!("{}/themes/default/{}", project_name, entry_theme), &format!("{}/source/{}{}.md", project_name, entry_subpath, stem), output_filename, &files, &stem);
+        generate_file(
+            project_name,
+            &format!("{}/themes/default/{}", project_name, entry_theme),
+            &format!("{}/source/{}{}.md", project_name, entry_subpath, stem),
+            output_filename,
+            &files,
+            &stem,
+        );
     }
 }
 
@@ -372,7 +391,7 @@ fn main() {
                         .takes_value(true)
                         .required(true)
                         .help("name of new project"),
-                )
+                ),
         )
         .subcommand(
             SubCommand::with_name("generate")
@@ -383,7 +402,7 @@ fn main() {
                         .takes_value(true)
                         .required(true)
                         .help("name of the project"),
-                )
+                ),
         )
         .subcommand(
             SubCommand::with_name("clean-build")
@@ -394,7 +413,7 @@ fn main() {
                         .takes_value(true)
                         .required(true)
                         .help("name of the project"),
-                )
+                ),
         )
         .get_matches();
 

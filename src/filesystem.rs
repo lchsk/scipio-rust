@@ -1,5 +1,5 @@
-use std::fs;
 use std;
+use std::fs;
 use std::fs::OpenOptions;
 use std::path::Path;
 use std::process::Command;
@@ -35,7 +35,6 @@ pub fn clean_build(project_name: &str) {
         .output()
         .expect("failed to remove build directory");
 }
-
 
 #[cfg(test)]
 mod tests {
