@@ -6,9 +6,11 @@ extern crate slugify;
 extern crate pulldown_cmark;
 use slugify::slugify;
 use std::process::Command;
-
+extern crate rss;
 use regex::Regex;
 use std::io::prelude::*;
+use std::io::BufWriter;
+use {rss::ChannelBuilder, rss::Item, rss::ItemBuilder};
 
 use clap::{App, Arg, SubCommand};
 use std::collections::HashMap;
@@ -104,8 +106,19 @@ fn generate_file(
         }
 
         let mut all_links: String = String::new();
+        let mut rss_items: Vec<Item> = Vec::new();
 
         for link in &posts {
+            let rss_item = ItemBuilder::default()
+                .title(link.title.to_string())
+                .description(link.description.to_string())
+                .link(format!("https://lchsk.com/{}.html", link.stem))
+                .pub_date(link.date.to_rfc2822())
+                .build()
+                .unwrap();
+
+            rss_items.push(rss_item);
+
             let link_html = format!(
                 "<a title=\"{}\" href=\"{}.html\">{}</a>",
                 link.title, link.stem, link.title
@@ -118,6 +131,18 @@ fn generate_file(
                 .replace("{{post_tags}}", &post_tags);
             all_links.push_str(link_text);
         }
+
+        let rss_file =
+            File::create(format!("{}/{}/{}", project_name, "build", "posts.xml")).unwrap();
+
+        let channel = ChannelBuilder::default()
+            .title("lchsk's blog posts")
+            .link("https://lchsk.com")
+            .description("An RSS feed with recent posts from lchsk.com")
+            .items(rss_items)
+            .build()
+            .unwrap();
+        channel.write_to(BufWriter::new(rss_file)).unwrap();
 
         Command::new("cp")
             .arg("-r")
