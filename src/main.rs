@@ -46,6 +46,7 @@ fn generate_file(
     let output = theme_contents.replace("{{title}}", &source.title);
     let output = output.replace("{{description}}", &source.description);
     let output = output.replace("{{keywords}}", &source.keywords);
+    let output = output.replace("{{tags}}", &source.tags.join(" "));
     let output = output.replace("{{date}}", &source.date.format("%Y-%m-%d").to_string());
     let mut output = output.replace("{{body}}", &source.body);
 
@@ -110,9 +111,11 @@ fn generate_file(
                 link.title, link.stem, link.title
             );
             let post_date = link.date.format("%Y-%m-%d").to_string();
+            let post_tags = link.tags.join(" ");
             let link_text = &link_tmpl
                 .replace("{{post_link}}", &link_html)
-                .replace("{{post_date}}", &post_date);
+                .replace("{{post_date}}", &post_date)
+                .replace("{{post_tags}}", &post_tags);
             all_links.push_str(link_text);
         }
 

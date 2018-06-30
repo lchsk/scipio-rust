@@ -18,6 +18,7 @@ pub struct SourceFile {
     pub title: String,
     pub description: String,
     pub keywords: String,
+    pub tags: Vec<String>,
     pub stem: String,
     pub date: DateTime<Utc>,
     pub body: String,
@@ -136,6 +137,26 @@ pub fn open_source_file(source_info: &InternalFile) -> SourceFile {
         }
     }
 
+    let mut tags: Vec<String> = Vec::new();
+
+    let re = Regex::new(r"tags: (?P<tags>.+)").unwrap();
+    {
+        let caps = re.captures(&source_contents);
+
+        match caps {
+            Some(caps) => {
+                let tags_it = caps["tags"].split(",");
+
+                for tag in tags_it {
+                    tags.push(tag.trim().to_string());
+                }
+            }
+            None => {
+                println!("tags not found in source file {}, skipping", source_path);
+            }
+        }
+    }
+
     let date: DateTime<Utc>;
 
     let re = Regex::new(r"created: (?P<date>.+)").unwrap();
@@ -201,6 +222,7 @@ pub fn open_source_file(source_info: &InternalFile) -> SourceFile {
         title: title,
         description: description,
         keywords: keywords,
+        tags: tags,
         stem: stem.to_string(),
         date: date,
         body: body,
