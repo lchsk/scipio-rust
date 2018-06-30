@@ -44,6 +44,8 @@ fn generate_file(
     let source = &files[file_stem];
 
     let output = theme_contents.replace("{{title}}", &source.title);
+    let output = output.replace("{{description}}", &source.description);
+    let output = output.replace("{{keywords}}", &source.keywords);
     let output = output.replace("{{date}}", &source.date.format("%Y-%m-%d").to_string());
     let mut output = output.replace("{{body}}", &source.body);
 

@@ -16,6 +16,8 @@ pub struct InternalFile {
 pub struct SourceFile {
     pub source: String,
     pub title: String,
+    pub description: String,
+    pub keywords: String,
     pub stem: String,
     pub date: DateTime<Utc>,
     pub body: String,
@@ -94,6 +96,46 @@ pub fn open_source_file(source_info: &InternalFile) -> SourceFile {
         }
     }
 
+    let description: String;
+
+    let re = Regex::new(r"description: (?P<description>.+)").unwrap();
+    {
+        let caps = re.captures(&source_contents);
+
+        match caps {
+            Some(caps) => {
+                description = caps["description"].to_string();
+            }
+            None => {
+                description = "".to_string();
+                println!(
+                    "description tag not found in source file {}, skipping",
+                    source_path
+                );
+            }
+        }
+    }
+
+    let keywords: String;
+
+    let re = Regex::new(r"keywords: (?P<keywords>.+)").unwrap();
+    {
+        let caps = re.captures(&source_contents);
+
+        match caps {
+            Some(caps) => {
+                keywords = caps["keywords"].to_string();
+            }
+            None => {
+                keywords = "".to_string();
+                println!(
+                    "keywords tag not found in source file {}, skipping",
+                    source_path
+                );
+            }
+        }
+    }
+
     let date: DateTime<Utc>;
 
     let re = Regex::new(r"created: (?P<date>.+)").unwrap();
@@ -157,6 +199,8 @@ pub fn open_source_file(source_info: &InternalFile) -> SourceFile {
     SourceFile {
         source: source_contents,
         title: title,
+        description: description,
+        keywords: keywords,
         stem: stem.to_string(),
         date: date,
         body: body,
