@@ -1,10 +1,7 @@
 extern crate chrono;
 extern crate clap;
 extern crate regex;
-#[macro_use]
-extern crate slugify;
 extern crate pulldown_cmark;
-use slugify::slugify;
 use std::process::Command;
 extern crate rss;
 use regex::Regex;
@@ -62,7 +59,7 @@ fn generate_file(
         output = output.replace(&st, tt);
     }
 
-    let of2 = &format!("{}.html", slugify!(&source.title));
+    let of2 = &format!("{}.html", &source.stem);
     let mut of: &str = "index.html";
 
     if output_filename == "" {

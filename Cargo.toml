@@ -6,7 +6,6 @@ authors = ["lchsk <mjlechowski@gmail.com>"]
 [dependencies]
 clap = "2.31.2"
 regex = "0.2"
-slugify = "0.1.0"
 chrono = "0.4"
 pulldown-cmark = { version = "0.0.11", default-features = false }
 rss = "1.0"
