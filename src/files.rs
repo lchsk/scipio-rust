@@ -69,7 +69,7 @@ pub fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
 pub fn open_source_file(source_info: &InternalFile) -> SourceFile {
     let source_path = &source_info.path;
     let stem = &source_info.stem;
-    let mut source_f = File::open(source_path);
+    let source_f = File::open(source_path);
     let mut source_contents = String::new();
 
     match source_f {
