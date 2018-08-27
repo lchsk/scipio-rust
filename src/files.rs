@@ -69,13 +69,19 @@ pub fn get_file_stem(path: &std::fs::DirEntry) -> InternalFile {
 pub fn open_source_file(source_info: &InternalFile) -> SourceFile {
     let source_path = &source_info.path;
     let stem = &source_info.stem;
-    let mut source_f = File::open(source_path).expect("file not found");
-
+    let mut source_f = File::open(source_path);
     let mut source_contents = String::new();
 
-    source_f
-        .read_to_string(&mut source_contents)
-        .expect("something went wrong reading the file");
+    match source_f {
+        Ok(mut source) => {
+            source
+                .read_to_string(&mut source_contents)
+                .expect("something went wrong reading the file");
+        }
+        Err(_) => {
+            println!("{:?} not found!", source_info);
+        }
+    }
 
     let title: String;
 
